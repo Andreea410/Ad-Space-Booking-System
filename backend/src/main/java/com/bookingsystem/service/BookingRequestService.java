@@ -106,4 +106,17 @@ public class BookingRequestService {
 
         return bookingRequestRepository.save(booking);
     }
+
+    public BookingRequest rejectBooking(Long bookingId) {
+        BookingRequest booking = bookingRequestRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingValidationException(
+                    "Only pending bookings can be rejected. Current status: " + booking.getStatus());
+        }
+
+        booking.reject();
+        return bookingRequestRepository.save(booking);
+    }
 }

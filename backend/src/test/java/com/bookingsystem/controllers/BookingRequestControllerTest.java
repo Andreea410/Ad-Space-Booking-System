@@ -264,4 +264,60 @@ class BookingRequestControllerTest {
                 () -> bookingRequestController.approveBooking(10L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing booking ID
+        WHEN rejectBooking is called
+        THEN the service is invoked and the updated booking is returned
+    """)
+    void rejectBooking_returnsUpdatedBooking() {
+        // GIVEN
+        BookingRequest booking = sampleBooking();
+        booking.reject();
+        when(bookingRequestService.rejectBooking(10L)).thenReturn(booking);
+
+        // WHEN
+        BookingRequest result = bookingRequestController.rejectBooking(10L);
+
+        // THEN
+        assertSame(booking, result);
+        verify(bookingRequestService).rejectBooking(10L);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a non-existent booking ID
+        WHEN rejectBooking is called
+        THEN BookingNotFoundException is propagated
+    """)
+    void rejectBooking_propagatesBookingNotFound() {
+        // GIVEN
+        when(bookingRequestService.rejectBooking(99L))
+                .thenThrow(new BookingNotFoundException(99L));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingNotFoundException.class,
+                () -> bookingRequestController.rejectBooking(99L)
+        );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a booking that cannot be rejected due to invalid state
+        WHEN rejectBooking is called
+        THEN BookingValidationException is propagated
+    """)
+    void rejectBooking_propagatesBookingValidationException() {
+        // GIVEN
+        when(bookingRequestService.rejectBooking(10L))
+                .thenThrow(new BookingValidationException("Cannot reject"));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingValidationException.class,
+                () -> bookingRequestController.rejectBooking(10L)
+        );
+    }
 }

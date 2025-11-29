@@ -67,4 +67,17 @@ public class BookingRequestController {
     public BookingRequest approveBooking(@PathVariable Long id) {
         return bookingRequestService.approveBooking(id);
     }
+
+    /**
+     * PATCH /api/v1/booking-requests/{id}/reject
+     *
+     * Rejects a pending booking.
+     * - 200 OK with the updated booking on success
+     * - 400 Bad Request if the booking is not in a valid state for rejection
+     * - 404 Not Found if the booking does not exist
+     */
+    @PatchMapping("/{id}/reject")
+    public BookingRequest rejectBooking(@PathVariable Long id) {
+        return bookingRequestService.rejectBooking(id);
+    }
 }

@@ -420,4 +420,79 @@ class BookingRequestServiceTest {
                 () -> bookingRequestService.approveBooking(5L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing PENDING booking
+        WHEN rejectBooking is invoked
+        THEN the booking status is changed to REJECTED and saved
+    """)
+    void rejectBooking_rejectsPendingBooking() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        BookingRequest pendingBooking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                new BigDecimal("1000.00")
+        );
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(pendingBooking));
+        when(bookingRequestRepository.save(any(BookingRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        BookingRequest result = bookingRequestService.rejectBooking(5L);
+
+        // THEN
+        assertEquals(BookingStatus.REJECTED, result.getStatus());
+        verify(bookingRequestRepository).save(pendingBooking);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a booking that is not in PENDING status
+        WHEN rejectBooking is invoked
+        THEN BookingValidationException is thrown
+    """)
+    void rejectBooking_throwsValidation_whenNotPending() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        BookingRequest booking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                new BigDecimal("1000.00")
+        );
+        booking.reject(); // status = REJECTED
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(booking));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingValidationException.class,
+                () -> bookingRequestService.rejectBooking(5L)
+        );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN no booking with the requested ID exists
+        WHEN rejectBooking is invoked
+        THEN BookingNotFoundException is thrown
+    """)
+    void rejectBooking_throwsBookingNotFound_whenMissing() {
+        // GIVEN
+        when(bookingRequestRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // WHEN / THEN
+        assertThrows(
+                BookingNotFoundException.class,
+                () -> bookingRequestService.rejectBooking(99L)
+        );
+    }
 }
