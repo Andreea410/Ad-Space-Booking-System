@@ -44,9 +44,9 @@ public class AdSpaceController {
             try {
                 type = AdSpaceType.valueOf(typeParam.toUpperCase());
             } catch (IllegalArgumentException ex) {
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST,
-                        "Invalid type. Allowed values: " + java.util.Arrays.toString(AdSpaceType.values())
+                throw new IllegalArgumentException(
+                        "Invalid 'type' parameter. Allowed values: " +
+                                java.util.Arrays.toString(AdSpaceType.values())
                 );
             }
         }

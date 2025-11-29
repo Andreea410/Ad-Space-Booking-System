@@ -1,5 +1,6 @@
 package com.bookingsystem.service;
 
+import com.bookingsystem.exception.AdSpaceNotFoundException;
 import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceStatus;
 import com.bookingsystem.model.AdSpaceType;
@@ -42,9 +43,7 @@ public class AdSpaceService {
     @Transactional(readOnly = true)
     public AdSpace getAdSpaceById(Long id) {
         return adSpaceRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Ad space not found with id: " + id)
-                );
+                .orElseThrow(() -> new AdSpaceNotFoundException(id));
     }
 
     @Transactional(readOnly = true)

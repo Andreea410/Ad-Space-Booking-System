@@ -1,0 +1,7 @@
+package com.bookingsystem.exception;
+
+public class BookingValidationException extends RuntimeException {
+    public BookingValidationException(String message) {
+        super(message);
+    }
+}
