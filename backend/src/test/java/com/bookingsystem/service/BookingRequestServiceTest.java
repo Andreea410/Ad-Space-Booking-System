@@ -495,4 +495,49 @@ class BookingRequestServiceTest {
                 () -> bookingRequestService.rejectBooking(99L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN no status filter
+        WHEN listBookings is invoked
+        THEN all bookings are returned via findAll
+    """)
+    void listBookings_withoutStatus_returnsAll() {
+        // GIVEN
+        List<BookingRequest> all = List.of(
+                mock(BookingRequest.class),
+                mock(BookingRequest.class)
+        );
+        when(bookingRequestRepository.findAll()).thenReturn(all);
+
+        // WHEN
+        List<BookingRequest> result = bookingRequestService.listBookings(null);
+
+        // THEN
+        assertEquals(all, result);
+        verify(bookingRequestRepository).findAll();
+        verify(bookingRequestRepository, never()).findByStatus(any());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a specific status filter
+        WHEN listBookings is invoked
+        THEN only bookings with that status are returned via findByStatus
+    """)
+    void listBookings_withStatus_usesFindByStatus() {
+        // GIVEN
+        List<BookingRequest> pending = List.of(
+                mock(BookingRequest.class)
+        );
+        when(bookingRequestRepository.findByStatus(BookingStatus.PENDING)).thenReturn(pending);
+
+        // WHEN
+        List<BookingRequest> result = bookingRequestService.listBookings(BookingStatus.PENDING);
+
+        // THEN
+        assertEquals(pending, result);
+        verify(bookingRequestRepository).findByStatus(BookingStatus.PENDING);
+        verify(bookingRequestRepository, never()).findAll();
+    }
 }

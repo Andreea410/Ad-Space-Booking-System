@@ -11,4 +11,5 @@ import java.util.List;
 public interface BookingRequestRepository extends JpaRepository<BookingRequest, Long> {
 
     List<BookingRequest> findByAdSpaceIdAndStatus(Long adSpaceId, BookingStatus status);
+    List<BookingRequest> findByStatus(BookingStatus status);
 }

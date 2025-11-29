@@ -2,17 +2,14 @@ package com.bookingsystem.controllers;
 
 import com.bookingsystem.dto.BookingRequestDto;
 import com.bookingsystem.model.BookingRequest;
+import com.bookingsystem.model.BookingStatus;
 import com.bookingsystem.service.BookingRequestService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/booking-requests")
@@ -41,6 +38,32 @@ public class BookingRequestController {
                 request.startDate(),
                 request.endDate()
         );
+    }
+
+    /**
+     * GET /api/v1/booking-requests
+     *
+     * Lists booking requests, optionally filtered by status.
+     * - 200 OK with a list of bookings
+     * - 400 Bad Request if the status parameter is invalid
+     */
+    @GetMapping
+    public List<BookingRequest> listBookings(
+            @RequestParam(name = "status", required = false) String statusParam
+    ) {
+        BookingStatus status = null;
+        if (statusParam != null && !statusParam.isBlank()) {
+            try {
+                status = BookingStatus.valueOf(statusParam.toUpperCase());
+            } catch (IllegalArgumentException ex) {
+                throw new IllegalArgumentException(
+                        "Invalid 'status' parameter. Allowed values: " +
+                                Arrays.toString(BookingStatus.values())
+                );
+            }
+        }
+
+        return bookingRequestService.listBookings(status);
     }
 
     /**

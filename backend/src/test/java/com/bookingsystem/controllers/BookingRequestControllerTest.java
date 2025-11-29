@@ -320,4 +320,59 @@ class BookingRequestControllerTest {
                 () -> bookingRequestController.rejectBooking(10L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN no status query parameter
+        WHEN listBookings is called
+        THEN the service is invoked with null status and the list is returned
+    """)
+    void listBookings_withoutStatus_delegatesWithNull() {
+        // GIVEN
+        BookingRequest booking1 = sampleBooking();
+        BookingRequest booking2 = sampleBooking();
+        when(bookingRequestService.listBookings(null))
+                .thenReturn(java.util.List.of(booking1, booking2));
+
+        // WHEN
+        var result = bookingRequestController.listBookings(null);
+
+        // THEN
+        assertEquals(2, result.size());
+        verify(bookingRequestService).listBookings(null);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a valid status query parameter (case-insensitive)
+        WHEN listBookings is called
+        THEN the service is invoked with the matching BookingStatus
+    """)
+    void listBookings_withValidStatus_parsesEnumAndDelegates() {
+        // GIVEN
+        BookingRequest booking = sampleBooking();
+        when(bookingRequestService.listBookings(BookingStatus.PENDING))
+                .thenReturn(java.util.List.of(booking));
+
+        // WHEN
+        var result = bookingRequestController.listBookings("pending");
+
+        // THEN
+        assertEquals(1, result.size());
+        verify(bookingRequestService).listBookings(BookingStatus.PENDING);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an invalid status query parameter
+        WHEN listBookings is called
+        THEN IllegalArgumentException is thrown
+    """)
+    void listBookings_withInvalidStatus_throwsIllegalArgumentException() {
+        // WHEN / THEN
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookingRequestController.listBookings("NOT_A_STATUS")
+        );
+    }
 }

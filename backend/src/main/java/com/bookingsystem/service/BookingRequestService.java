@@ -119,4 +119,12 @@ public class BookingRequestService {
         booking.reject();
         return bookingRequestRepository.save(booking);
     }
+
+    @Transactional(readOnly = true)
+    public List<BookingRequest> listBookings(BookingStatus status) {
+        if (status != null) {
+            return bookingRequestRepository.findByStatus(status);
+        }
+        return bookingRequestRepository.findAll();
+    }
 }
