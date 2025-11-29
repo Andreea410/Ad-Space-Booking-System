@@ -3,9 +3,8 @@ package com.bookingsystem.controllers;
 import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceType;
 import com.bookingsystem.service.AdSpaceService;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,5 +51,17 @@ public class AdSpaceController {
         }
 
         return adSpaceService.searchAdSpaces(city, type);
+    }
+
+    /**
+     * GET /api/v1/ad-spaces/{id}
+     *
+     * Returns details for a single ad space.
+     * - 200 OK with ad space data when found
+     * - 404 Not Found when the id does not exist (handled by GlobalExceptionHandler)
+     */
+    @GetMapping("/{id}")
+    public AdSpace getAdSpaceById(@PathVariable Long id) {
+        return adSpaceService.getAdSpaceById(id);
     }
 }
