@@ -17,7 +17,6 @@ CREATE TYPE booking_status AS ENUM (
     'REJECTED'
 );
 
-
 CREATE TABLE ad_space (
                           id BIGSERIAL PRIMARY KEY,
                           name VARCHAR(255) NOT NULL,

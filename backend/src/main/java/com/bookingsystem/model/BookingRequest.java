@@ -53,8 +53,8 @@ public class BookingRequest {
     private BigDecimal totalCost;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status;
+    @Column(nullable = false, columnDefinition = "booking_status default 'PENDING'")
+    private BookingStatus status = BookingStatus.PENDING;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -65,12 +65,9 @@ public class BookingRequest {
             String advertiserEmail,
             LocalDate startDate,
             LocalDate endDate,
-            BigDecimal totalCost,
-            BookingStatus status
+            BigDecimal totalCost
     ) {
-        if (startDate.isAfter(endDate)) {
-            throw new IllegalArgumentException("Start date must be before or equal to end date");
-        }
+        validateBookingDates(startDate, endDate);
         
         this.adSpace = adSpace;
         this.advertiserName = advertiserName;
@@ -78,11 +75,50 @@ public class BookingRequest {
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalCost = totalCost;
-        this.status = status;
+        this.status = BookingStatus.PENDING; // Always starts as PENDING
         this.createdAt = LocalDateTime.now();
     }
+    
+    private void validateBookingDates(LocalDate startDate, LocalDate endDate) {
+        LocalDate today = LocalDate.now();
+        
+        if (startDate.isBefore(today)) {
+            throw new IllegalArgumentException("Start date must be in the future");
+        }
+        
+        if (!endDate.isAfter(startDate)) {
+            throw new IllegalArgumentException("End date must be after start date");
+        }
+        
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+        if (daysBetween < 7) {
+            throw new IllegalArgumentException("Minimum booking duration is 7 days");
+        }
+    }
 
-    public void markPending()     { this.status = BookingStatus.PENDING; }
-    public void markApproved()    { this.status = BookingStatus.APPROVED; }
-    public void markRejected()    { this.status = BookingStatus.REJECTED; }
+    public void approve() {
+        if (this.status != BookingStatus.PENDING) {
+            throw new IllegalStateException("Only pending bookings can be approved. Current status: " + this.status);
+        }
+        this.status = BookingStatus.APPROVED;
+    }
+
+    public void reject() {
+        if (this.status != BookingStatus.PENDING) {
+            throw new IllegalStateException("Only pending bookings can be rejected. Current status: " + this.status);
+        }
+        this.status = BookingStatus.REJECTED;
+    }
+
+    public boolean isActive() {
+        if (this.status != BookingStatus.APPROVED) {
+            return false;
+        }
+        LocalDate today = LocalDate.now();
+        return !today.isBefore(this.startDate) && !today.isAfter(this.endDate);
+    }
+
+    public boolean overlapsWith(LocalDate otherStart, LocalDate otherEnd) {
+        return !this.endDate.isBefore(otherStart) && !otherStart.isAfter(this.endDate);
+    }
 }
