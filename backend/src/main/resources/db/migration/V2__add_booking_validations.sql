@@ -2,6 +2,9 @@ ALTER TABLE booking_request
     ALTER COLUMN status SET DEFAULT 'PENDING';
 
 ALTER TABLE booking_request
+    ADD COLUMN updated_at TIMESTAMP NOT NULL DEFAULT NOW();
+
+ALTER TABLE booking_request
     ADD CONSTRAINT chk_booking_dates 
     CHECK (end_date > start_date);
 

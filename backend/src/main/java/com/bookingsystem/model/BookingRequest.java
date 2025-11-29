@@ -59,6 +59,9 @@ public class BookingRequest {
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
     public BookingRequest(
             AdSpace adSpace,
             String advertiserName,
@@ -75,25 +78,31 @@ public class BookingRequest {
         this.startDate = startDate;
         this.endDate = endDate;
         this.totalCost = totalCost;
-        this.status = BookingStatus.PENDING; // Always starts as PENDING
+        this.status = BookingStatus.PENDING;
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
-    
+
     private void validateBookingDates(LocalDate startDate, LocalDate endDate) {
         LocalDate today = LocalDate.now();
-        
+
         if (startDate.isBefore(today)) {
             throw new IllegalArgumentException("Start date must be in the future");
         }
-        
+
         if (!endDate.isAfter(startDate)) {
             throw new IllegalArgumentException("End date must be after start date");
         }
-        
+
         long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
         if (daysBetween < 7) {
             throw new IllegalArgumentException("Minimum booking duration is 7 days");
         }
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public void approve() {
