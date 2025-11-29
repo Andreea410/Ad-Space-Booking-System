@@ -3,6 +3,7 @@ package com.bookingsystem.controllers;
 import com.bookingsystem.dto.BookingRequestDto;
 import com.bookingsystem.exception.AdSpaceNotAvailableException;
 import com.bookingsystem.exception.AdSpaceNotFoundException;
+import com.bookingsystem.exception.BookingNotFoundException;
 import com.bookingsystem.exception.BookingValidationException;
 import com.bookingsystem.model.*;
 import com.bookingsystem.service.BookingRequestService;
@@ -168,6 +169,43 @@ class BookingRequestControllerTest {
         assertThrows(
                 AdSpaceNotAvailableException.class,
                 () -> bookingRequestController.createBooking(request)
+        );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing booking ID
+        WHEN getBookingById is called
+        THEN the booking is returned from the service
+    """)
+    void getBookingById_returnsBooking() {
+        // GIVEN
+        BookingRequest booking = sampleBooking();
+        when(bookingRequestService.getBookingById(10L)).thenReturn(booking);
+
+        // WHEN
+        BookingRequest result = bookingRequestController.getBookingById(10L);
+
+        // THEN
+        assertSame(booking, result);
+        verify(bookingRequestService).getBookingById(10L);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a non-existent booking ID
+        WHEN getBookingById is called
+        THEN BookingNotFoundException is propagated
+    """)
+    void getBookingById_propagatesBookingNotFound() {
+        // GIVEN
+        when(bookingRequestService.getBookingById(99L))
+                .thenThrow(new BookingNotFoundException(99L));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingNotFoundException.class,
+                () -> bookingRequestController.getBookingById(99L)
         );
     }
 }

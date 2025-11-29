@@ -128,6 +128,6 @@ public class BookingRequest {
     }
 
     public boolean overlapsWith(LocalDate otherStart, LocalDate otherEnd) {
-        return !this.endDate.isBefore(otherStart) && !otherStart.isAfter(this.endDate);
+        return !this.endDate.isBefore(otherStart) && !otherEnd.isBefore(this.startDate);
     }
 }

@@ -2,6 +2,7 @@ package com.bookingsystem.service;
 
 import com.bookingsystem.exception.AdSpaceNotAvailableException;
 import com.bookingsystem.exception.AdSpaceNotFoundException;
+import com.bookingsystem.exception.BookingNotFoundException;
 import com.bookingsystem.exception.BookingValidationException;
 import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceStatus;
@@ -69,5 +70,11 @@ public class BookingRequestService {
         );
 
         return bookingRequestRepository.save(booking);
+    }
+
+    @Transactional(readOnly = true)
+    public BookingRequest getBookingById(Long id) {
+        return bookingRequestRepository.findById(id)
+                .orElseThrow(() -> new BookingNotFoundException(id));
     }
 }

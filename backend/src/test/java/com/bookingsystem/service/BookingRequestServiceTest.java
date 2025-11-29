@@ -2,6 +2,7 @@ package com.bookingsystem.service;
 
 import com.bookingsystem.exception.AdSpaceNotAvailableException;
 import com.bookingsystem.exception.AdSpaceNotFoundException;
+import com.bookingsystem.exception.BookingNotFoundException;
 import com.bookingsystem.exception.BookingValidationException;
 import com.bookingsystem.model.*;
 import com.bookingsystem.repository.AdSpaceRepository;
@@ -175,5 +176,143 @@ class BookingRequestServiceTest {
         assertEquals(BookingStatus.PENDING, result.getStatus());
         assertEquals(start, result.getStartDate());
         assertEquals(end, result.getEndDate());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing APPROVED booking that ends before the requested period starts
+        WHEN createBooking is invoked
+        THEN no overlap is detected and the new booking is saved
+    """)
+    void createBooking_allowsNonOverlappingBooking_afterExistingApprovedBooking() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(adSpace));
+
+        LocalDate existingStart = LocalDate.now().plusDays(1);
+        LocalDate existingEnd   = LocalDate.now().plusDays(10);
+        BookingRequest existing = new BookingRequest(
+                adSpace,
+                "Existing",
+                "existing@example.com",
+                existingStart,
+                existingEnd,
+                new BigDecimal("900.00")
+        );
+
+        when(bookingRequestRepository.findByAdSpaceIdAndStatus(1L, BookingStatus.APPROVED))
+                .thenReturn(List.of(existing));
+
+        // new booking completely after existing
+        LocalDate newStart = LocalDate.now().plusDays(15);
+        LocalDate newEnd   = LocalDate.now().plusDays(25);
+
+        when(bookingRequestRepository.save(any(BookingRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        BookingRequest result = bookingRequestService.createBooking(
+                1L,
+                "John Doe",
+                "john@example.com",
+                newStart,
+                newEnd
+        );
+
+        // THEN
+        assertNotNull(result);
+        verify(bookingRequestRepository).save(any(BookingRequest.class));
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing APPROVED booking that starts after the requested period ends
+        WHEN createBooking is invoked
+        THEN no overlap is detected and the new booking is saved
+    """)
+    void createBooking_allowsNonOverlappingBooking_beforeExistingApprovedBooking() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(adSpace));
+
+        // existing booking in the future
+        LocalDate existingStart = LocalDate.now().plusDays(30);
+        LocalDate existingEnd   = LocalDate.now().plusDays(40);
+        BookingRequest existing = new BookingRequest(
+                adSpace,
+                "Existing",
+                "existing@example.com",
+                existingStart,
+                existingEnd,
+                new BigDecimal("900.00")
+        );
+
+        when(bookingRequestRepository.findByAdSpaceIdAndStatus(1L, BookingStatus.APPROVED))
+                .thenReturn(List.of(existing));
+
+        // new booking completely before existing
+        LocalDate newStart = LocalDate.now().plusDays(10);
+        LocalDate newEnd   = LocalDate.now().plusDays(20);
+
+        when(bookingRequestRepository.save(any(BookingRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        BookingRequest result = bookingRequestService.createBooking(
+                1L,
+                "John Doe",
+                "john@example.com",
+                newStart,
+                newEnd
+        );
+
+        // THEN
+        assertNotNull(result);
+        verify(bookingRequestRepository).save(any(BookingRequest.class));
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing booking in the repository
+        WHEN getBookingById is invoked
+        THEN the booking is returned
+    """)
+    void getBookingById_returnsBooking() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        BookingRequest booking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                new BigDecimal("1000.00")
+        );
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(booking));
+
+        // WHEN
+        BookingRequest result = bookingRequestService.getBookingById(5L);
+
+        // THEN
+        assertSame(booking, result);
+        verify(bookingRequestRepository).findById(5L);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN no booking with the requested ID exists
+        WHEN getBookingById is invoked
+        THEN BookingNotFoundException is thrown
+    """)
+    void getBookingById_throwsBookingNotFound_whenMissing() {
+        // GIVEN
+        when(bookingRequestRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // WHEN / THEN
+        assertThrows(
+                BookingNotFoundException.class,
+                () -> bookingRequestService.getBookingById(99L)
+        );
     }
 }
