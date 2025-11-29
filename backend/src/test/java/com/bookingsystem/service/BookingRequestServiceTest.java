@@ -315,4 +315,109 @@ class BookingRequestServiceTest {
                 () -> bookingRequestService.getBookingById(99L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing PENDING booking with no conflicting APPROVED bookings
+        WHEN approveBooking is invoked
+        THEN the booking is approved and the ad space is marked as BOOKED
+    """)
+    void approveBooking_approvesPendingBookingAndMarksAdSpaceBooked() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        BookingRequest pendingBooking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                new BigDecimal("1000.00")
+        );
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(pendingBooking));
+        when(bookingRequestRepository.findByAdSpaceIdAndStatus(adSpace.getId(), BookingStatus.APPROVED))
+                .thenReturn(Collections.emptyList());
+        when(bookingRequestRepository.save(any(BookingRequest.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        BookingRequest result = bookingRequestService.approveBooking(5L);
+
+        // THEN
+        assertEquals(BookingStatus.APPROVED, result.getStatus());
+        assertEquals(AdSpaceStatus.BOOKED, adSpace.getStatus());
+        verify(adSpaceRepository).save(adSpace);
+        verify(bookingRequestRepository).save(pendingBooking);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a booking that is not in PENDING status
+        WHEN approveBooking is invoked
+        THEN BookingValidationException is thrown
+    """)
+    void approveBooking_throwsValidation_whenNotPending() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+        BookingRequest approvedBooking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                LocalDate.now().plusDays(10),
+                LocalDate.now().plusDays(20),
+                new BigDecimal("1000.00")
+        );
+        approvedBooking.approve(); // status = APPROVED
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(approvedBooking));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingValidationException.class,
+                () -> bookingRequestService.approveBooking(5L)
+        );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing PENDING booking that overlaps an APPROVED booking
+        WHEN approveBooking is invoked
+        THEN BookingValidationException is thrown to prevent double-approval
+    """)
+    void approveBooking_throwsValidation_whenOverlapsExistingApproved() {
+        // GIVEN
+        AdSpace adSpace = availableAdSpaceWithPrice(new BigDecimal("100.00"));
+
+        LocalDate start = LocalDate.now().plusDays(10);
+        LocalDate end   = LocalDate.now().plusDays(20);
+
+        BookingRequest pendingBooking = new BookingRequest(
+                adSpace,
+                "John Doe",
+                "john@example.com",
+                start,
+                end,
+                new BigDecimal("1000.00")
+        );
+
+        BookingRequest existingApproved = new BookingRequest(
+                adSpace,
+                "Existing",
+                "existing@example.com",
+                start.plusDays(2),
+                end.plusDays(2),
+                new BigDecimal("900.00")
+        );
+        existingApproved.approve();
+
+        when(bookingRequestRepository.findById(5L)).thenReturn(Optional.of(pendingBooking));
+        when(bookingRequestRepository.findByAdSpaceIdAndStatus(adSpace.getId(), BookingStatus.APPROVED))
+                .thenReturn(List.of(existingApproved));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingValidationException.class,
+                () -> bookingRequestService.approveBooking(5L)
+        );
+    }
 }

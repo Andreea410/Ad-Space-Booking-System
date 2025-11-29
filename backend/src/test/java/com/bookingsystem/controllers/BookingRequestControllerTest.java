@@ -208,4 +208,60 @@ class BookingRequestControllerTest {
                 () -> bookingRequestController.getBookingById(99L)
         );
     }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing booking ID
+        WHEN approveBooking is called
+        THEN the service is invoked and the updated booking is returned
+    """)
+    void approveBooking_returnsUpdatedBooking() {
+        // GIVEN
+        BookingRequest booking = sampleBooking();
+        booking.approve();
+        when(bookingRequestService.approveBooking(10L)).thenReturn(booking);
+
+        // WHEN
+        BookingRequest result = bookingRequestController.approveBooking(10L);
+
+        // THEN
+        assertSame(booking, result);
+        verify(bookingRequestService).approveBooking(10L);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a non-existent booking ID
+        WHEN approveBooking is called
+        THEN BookingNotFoundException is propagated
+    """)
+    void approveBooking_propagatesBookingNotFound() {
+        // GIVEN
+        when(bookingRequestService.approveBooking(99L))
+                .thenThrow(new BookingNotFoundException(99L));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingNotFoundException.class,
+                () -> bookingRequestController.approveBooking(99L)
+        );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a booking that cannot be approved due to invalid state or conflicts
+        WHEN approveBooking is called
+        THEN BookingValidationException is propagated
+    """)
+    void approveBooking_propagatesBookingValidationException() {
+        // GIVEN
+        when(bookingRequestService.approveBooking(10L))
+                .thenThrow(new BookingValidationException("Cannot approve"));
+
+        // WHEN / THEN
+        assertThrows(
+                BookingValidationException.class,
+                () -> bookingRequestController.approveBooking(10L)
+        );
+    }
 }

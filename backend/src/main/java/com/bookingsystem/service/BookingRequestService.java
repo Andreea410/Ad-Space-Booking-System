@@ -77,4 +77,33 @@ public class BookingRequestService {
         return bookingRequestRepository.findById(id)
                 .orElseThrow(() -> new BookingNotFoundException(id));
     }
+
+    public BookingRequest approveBooking(Long bookingId) {
+        BookingRequest booking = bookingRequestRepository.findById(bookingId)
+                .orElseThrow(() -> new BookingNotFoundException(bookingId));
+
+        if (booking.getStatus() != BookingStatus.PENDING) {
+            throw new BookingValidationException(
+                    "Only pending bookings can be approved. Current status: " + booking.getStatus());
+        }
+
+        List<BookingRequest> approvedBookings = bookingRequestRepository
+                .findByAdSpaceIdAndStatus(booking.getAdSpace().getId(), BookingStatus.APPROVED);
+
+        boolean hasOverlap = approvedBookings.stream()
+                .anyMatch(existing -> existing.overlapsWith(booking.getStartDate(), booking.getEndDate()));
+
+        if (hasOverlap) {
+            throw new BookingValidationException(
+                    "Cannot approve booking: there are already approved bookings for this period");
+        }
+
+        booking.approve();
+
+        AdSpace adSpace = booking.getAdSpace();
+        adSpace.markBooked();
+        adSpaceRepository.save(adSpace);
+
+        return bookingRequestRepository.save(booking);
+    }
 }
