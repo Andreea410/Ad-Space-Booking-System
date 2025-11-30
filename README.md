@@ -289,7 +289,7 @@ You should see `booking_system` in the list.
 
 **Option 1: Edit application.properties directly**
 
-Open `backend/src/main/resources/application.properties` and update the database credentials:
+Open `backend/src/main/resources/application.properties` and update the database credentials with your own username and password:
 
 ```properties
 spring.datasource.url=jdbc:postgresql://localhost:5432/booking_system
@@ -331,6 +331,7 @@ cd backend
 #### Step 3.2: Make the run script executable (Mac/Linux only)
 
 ```bash
+chmod +x gradlew
 chmod +x run_backend.sh
 ```
 
