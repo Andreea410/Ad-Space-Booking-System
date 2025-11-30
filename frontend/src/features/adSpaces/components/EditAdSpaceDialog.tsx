@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Button,
   Dialog,
@@ -7,6 +7,7 @@ import {
   DialogTitle,
   TextField,
 } from '@mui/material';
+import { adSpaceEditSchema } from '../../../shared/validation/schemas';
 
 interface EditAdSpaceDialogProps {
   open: boolean;
@@ -23,6 +24,37 @@ export function EditAdSpaceDialog({
   onCancel,
   onSave,
 }: EditAdSpaceDialogProps) {
+  const [error, setError] = useState<string>('');
+
+  useEffect(() => {
+    if (!open) {
+      setError('');
+    }
+  }, [open]);
+
+  const handleNameChange = (value: string) => {
+    onNameChange(value);
+    // Clear error on change
+    if (error) {
+      setError('');
+    }
+  };
+
+  const handleSave = () => {
+    const result = adSpaceEditSchema.safeParse({ name });
+    if (!result.success) {
+      setError(result.error.issues[0].message);
+      return;
+    }
+    onSave();
+  };
+
+  const handleKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === 'Enter') {
+      handleSave();
+    }
+  };
+
   return (
     <Dialog open={open} onClose={onCancel} maxWidth="sm" fullWidth>
       <DialogTitle>Edit ad space</DialogTitle>
@@ -33,12 +65,15 @@ export function EditAdSpaceDialog({
           label="Name"
           fullWidth
           value={name}
-          onChange={(e) => onNameChange(e.target.value)}
+          onChange={(e) => handleNameChange(e.target.value)}
+          onKeyPress={handleKeyPress}
+          error={Boolean(error)}
+          helperText={error || 'Enter a name for the ad space (3-100 characters)'}
         />
       </DialogContent>
       <DialogActions>
         <Button onClick={onCancel}>Cancel</Button>
-        <Button onClick={onSave} variant="contained">
+        <Button onClick={handleSave} variant="contained">
           Save
         </Button>
       </DialogActions>

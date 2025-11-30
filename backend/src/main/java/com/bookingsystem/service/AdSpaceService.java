@@ -109,4 +109,9 @@ public class AdSpaceService {
 
         return adSpaceRepository.save(adSpace);
     }
+
+    public void deleteAdSpace(Long id) {
+        AdSpace adSpace = getAdSpaceById(id);
+        adSpaceRepository.delete(adSpace);
+    }
 }

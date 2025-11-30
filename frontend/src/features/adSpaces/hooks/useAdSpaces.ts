@@ -3,6 +3,8 @@ import type { AdSpace } from '../../../api/types';
 import {
   type AdSpaceTypeFilter,
   type AdSpacesState,
+  type SortField,
+  type SortOrder,
   useAdSpacesStore,
 } from '../store/adSpacesStore';
 
@@ -11,19 +13,25 @@ export function useAdSpaces() {
     adSpaces,
     cityFilter,
     typeFilter,
+    sortBy,
+    sortOrder,
     loading,
     error,
     setCityFilter,
     setTypeFilter,
+    setSorting,
     loadAdSpaces,
   } = useAdSpacesStore((state: AdSpacesState) => ({
     adSpaces: state.adSpaces,
     cityFilter: state.cityFilter,
     typeFilter: state.typeFilter,
+    sortBy: state.sortBy,
+    sortOrder: state.sortOrder,
     loading: state.loading,
     error: state.error,
     setCityFilter: state.setCityFilter,
     setTypeFilter: state.setTypeFilter,
+    setSorting: state.setSorting,
     loadAdSpaces: state.loadAdSpaces,
   }));
 
@@ -33,7 +41,7 @@ export function useAdSpaces() {
 
   useEffect(() => {
     void loadAdSpaces();
-  }, [cityFilter, typeFilter, loadAdSpaces]);
+  }, [cityFilter, typeFilter, sortBy, sortOrder, loadAdSpaces]);
 
   const handleCityFilterChange = (value: string) => {
     setCityFilter(value);
@@ -45,6 +53,12 @@ export function useAdSpaces() {
 
   const handleRefresh = () => {
     void loadAdSpaces();
+  };
+
+  const handleSort = (field: SortField) => {
+    const newOrder: SortOrder =
+      sortBy === field && sortOrder === 'asc' ? 'desc' : 'asc';
+    setSorting(field, newOrder);
   };
 
   const hasResults = adSpaces.length > 0;
@@ -65,6 +79,8 @@ export function useAdSpaces() {
     adSpaces,
     cityFilter,
     typeFilter,
+    sortBy,
+    sortOrder,
     loading,
     error,
     hasResults,
@@ -73,6 +89,7 @@ export function useAdSpaces() {
     handleCityFilterChange,
     handleTypeFilterChange,
     handleRefresh,
+    handleSort,
   };
 }
 
