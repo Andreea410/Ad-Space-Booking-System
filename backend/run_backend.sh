@@ -1,12 +1,15 @@
 #!/bin/bash
 
-# Set environment variables
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_USER=postgres # add your username here 
-export DB_PASS=postgres # add your password here
+# Load .env into the current shell session
+if [ -f .env ]; then
+  while IFS='=' read -r key value
+  do
+    # Skip comments and empty lines
+    if [[ -n "$key" && "$key" != \#* ]]; then
+      export "$key"="$value"
+    fi
+  done < .env
+fi
 
-# Add anything else your project needs
-
-# Run the backend
+# Kick off backend
 ./gradlew bootRun
