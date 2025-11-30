@@ -3,6 +3,7 @@ package com.bookingsystem.repository;
 import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceStatus;
 import com.bookingsystem.model.AdSpaceType;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Repository
 public interface AdSpaceRepository extends JpaRepository<AdSpace, Long> {
 
-    List<AdSpace> findByStatus(AdSpaceStatus status);
+    List<AdSpace> findByStatus(AdSpaceStatus status, Sort sort);
 
     List<AdSpace> findByType(AdSpaceType type);
 
@@ -19,9 +20,9 @@ public interface AdSpaceRepository extends JpaRepository<AdSpace, Long> {
 
     List<AdSpace> findByStatusAndCity(AdSpaceStatus status, String city);
 
-    List<AdSpace> findByStatusAndCityContainingIgnoreCase(AdSpaceStatus status, String cityFragment);
+    List<AdSpace> findByStatusAndCityContainingIgnoreCase(AdSpaceStatus status, String cityFragment, Sort sort);
 
-    List<AdSpace> findByStatusAndType(AdSpaceStatus status, AdSpaceType type);
+    List<AdSpace> findByStatusAndType(AdSpaceStatus status, AdSpaceType type, Sort sort);
 
     List<AdSpace> findByStatusAndTypeAndCity(
             AdSpaceStatus status,
@@ -32,14 +33,15 @@ public interface AdSpaceRepository extends JpaRepository<AdSpace, Long> {
     List<AdSpace> findByStatusAndTypeAndCityContainingIgnoreCase(
             AdSpaceStatus status,
             AdSpaceType type,
-            String cityFragment
+            String cityFragment,
+            Sort sort
     );
 
     default List<AdSpace> findAllAvailable() {
-        return findByStatus(AdSpaceStatus.AVAILABLE);
+        return findByStatus(AdSpaceStatus.AVAILABLE, Sort.by("name").ascending());
     }
 
     default List<AdSpace> findAllBooked() {
-        return findByStatus(AdSpaceStatus.BOOKED);
+        return findByStatus(AdSpaceStatus.BOOKED, Sort.by("name").ascending());
     }
 }

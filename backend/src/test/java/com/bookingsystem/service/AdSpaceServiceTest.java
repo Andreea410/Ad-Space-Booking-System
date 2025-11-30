@@ -11,6 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -103,82 +105,214 @@ class AdSpaceServiceTest {
     @DisplayName("""
         GIVEN no filters
         WHEN searchAdSpaces is called
-        THEN it delegates to findByStatus(AVAILABLE)
+        THEN it delegates to findByStatus(AVAILABLE) with default sort
     """)
     void searchAdSpaces_noFilters_usesStatusOnly() {
         // GIVEN
-        when(adSpaceRepository.findByStatus(AdSpaceStatus.AVAILABLE))
+        when(adSpaceRepository.findByStatus(eq(AdSpaceStatus.AVAILABLE), any(Sort.class)))
                 .thenReturn(List.of(sampleAdSpace()));
 
         // WHEN
-        List<AdSpace> result = adSpaceService.searchAdSpaces(null, null);
+        List<AdSpace> result = adSpaceService.searchAdSpaces(null, null, null);
 
         // THEN
         assertEquals(1, result.size());
-        verify(adSpaceRepository).findByStatus(AdSpaceStatus.AVAILABLE);
+        verify(adSpaceRepository).findByStatus(eq(AdSpaceStatus.AVAILABLE), any(Sort.class));
     }
 
     @Test
     @DisplayName("""
         GIVEN only city filter
         WHEN searchAdSpaces is called
-        THEN it delegates to findByStatusAndCity(AVAILABLE, city)
+        THEN it delegates to findByStatusAndCityContainingIgnoreCase with sort
     """)
     void searchAdSpaces_onlyCity_usesStatusAndCity() {
         // GIVEN
-        when(adSpaceRepository.findByStatusAndCity(AdSpaceStatus.AVAILABLE, "Bucharest"))
+        when(adSpaceRepository.findByStatusAndCityContainingIgnoreCase(
+                eq(AdSpaceStatus.AVAILABLE), eq("Bucharest"), any(Sort.class)))
                 .thenReturn(List.of(sampleAdSpace()));
 
         // WHEN
-        List<AdSpace> result = adSpaceService.searchAdSpaces("Bucharest", null);
+        List<AdSpace> result = adSpaceService.searchAdSpaces("Bucharest", null, null);
 
         // THEN
         assertEquals(1, result.size());
-        verify(adSpaceRepository).findByStatusAndCity(AdSpaceStatus.AVAILABLE, "Bucharest");
+        verify(adSpaceRepository).findByStatusAndCityContainingIgnoreCase(
+                eq(AdSpaceStatus.AVAILABLE), eq("Bucharest"), any(Sort.class));
     }
 
     @Test
     @DisplayName("""
         GIVEN only type filter
         WHEN searchAdSpaces is called
-        THEN it delegates to findByStatusAndType(AVAILABLE, type)
+        THEN it delegates to findByStatusAndType with sort
     """)
     void searchAdSpaces_onlyType_usesStatusAndType() {
         // GIVEN
-        when(adSpaceRepository.findByStatusAndType(AdSpaceStatus.AVAILABLE, AdSpaceType.BILLBOARD))
+        when(adSpaceRepository.findByStatusAndType(
+                eq(AdSpaceStatus.AVAILABLE), eq(AdSpaceType.BILLBOARD), any(Sort.class)))
                 .thenReturn(List.of(sampleAdSpace()));
 
         // WHEN
-        List<AdSpace> result = adSpaceService.searchAdSpaces(null, AdSpaceType.BILLBOARD);
+        List<AdSpace> result = adSpaceService.searchAdSpaces(null, AdSpaceType.BILLBOARD, null);
 
         // THEN
         assertEquals(1, result.size());
-        verify(adSpaceRepository).findByStatusAndType(AdSpaceStatus.AVAILABLE, AdSpaceType.BILLBOARD);
+        verify(adSpaceRepository).findByStatusAndType(
+                eq(AdSpaceStatus.AVAILABLE), eq(AdSpaceType.BILLBOARD), any(Sort.class));
     }
 
     @Test
     @DisplayName("""
         GIVEN both city and type filters
         WHEN searchAdSpaces is called
-        THEN it delegates to findByStatusAndTypeAndCity(AVAILABLE, type, city)
+        THEN it delegates to findByStatusAndTypeAndCityContainingIgnoreCase with sort
     """)
     void searchAdSpaces_cityAndType_usesStatusTypeAndCity() {
         // GIVEN
-        when(adSpaceRepository.findByStatusAndTypeAndCity(
-                AdSpaceStatus.AVAILABLE,
-                AdSpaceType.BILLBOARD,
-                "Bucharest"
+        when(adSpaceRepository.findByStatusAndTypeAndCityContainingIgnoreCase(
+                eq(AdSpaceStatus.AVAILABLE),
+                eq(AdSpaceType.BILLBOARD),
+                eq("Bucharest"),
+                any(Sort.class)
         )).thenReturn(List.of(sampleAdSpace()));
 
         // WHEN
-        List<AdSpace> result = adSpaceService.searchAdSpaces("Bucharest", AdSpaceType.BILLBOARD);
+        List<AdSpace> result = adSpaceService.searchAdSpaces("Bucharest", AdSpaceType.BILLBOARD, null);
 
         // THEN
         assertEquals(1, result.size());
-        verify(adSpaceRepository).findByStatusAndTypeAndCity(
-                AdSpaceStatus.AVAILABLE,
-                AdSpaceType.BILLBOARD,
-                "Bucharest"
+        verify(adSpaceRepository).findByStatusAndTypeAndCityContainingIgnoreCase(
+                eq(AdSpaceStatus.AVAILABLE),
+                eq(AdSpaceType.BILLBOARD),
+                eq("Bucharest"),
+                any(Sort.class)
         );
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing ad space and a new name
+        WHEN updateAdSpace is called with only name
+        THEN the name is updated and the entity is saved
+    """)
+    void updateAdSpace_withName_updatesSuccessfully() {
+        // GIVEN
+        AdSpace existingAdSpace = sampleAdSpace();
+        String newName = "Updated Billboard Name";
+        
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(existingAdSpace));
+        when(adSpaceRepository.save(any(AdSpace.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        AdSpace result = adSpaceService.updateAdSpace(1L, newName, null, null, null, null);
+
+        // THEN
+        assertEquals(newName, result.getName());
+        assertEquals("Bucharest", result.getCity()); // Other fields unchanged
+        verify(adSpaceRepository).findById(1L);
+        verify(adSpaceRepository).save(existingAdSpace);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing ad space and multiple update fields
+        WHEN updateAdSpace is called
+        THEN all provided fields are updated
+    """)
+    void updateAdSpace_withMultipleFields_updatesAll() {
+        // GIVEN
+        AdSpace existingAdSpace = sampleAdSpace();
+        String newName = "New Name";
+        String newCity = "Cluj";
+        String newAddress = "New Address";
+        BigDecimal newPrice = new BigDecimal("250.00");
+        AdSpaceType newType = AdSpaceType.BUS_STOP;
+        
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(existingAdSpace));
+        when(adSpaceRepository.save(any(AdSpace.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        // WHEN
+        AdSpace result = adSpaceService.updateAdSpace(1L, newName, newType, newCity, newAddress, newPrice);
+
+        // THEN
+        assertEquals(newName, result.getName());
+        assertEquals(newCity, result.getCity());
+        assertEquals(newAddress, result.getAddress());
+        assertEquals(newPrice, result.getPricePerDay());
+        assertEquals(newType, result.getType());
+        verify(adSpaceRepository).save(existingAdSpace);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a non-existent ad space id
+        WHEN updateAdSpace is called
+        THEN AdSpaceNotFoundException is thrown
+    """)
+    void updateAdSpace_notFound_throwsException() {
+        // GIVEN
+        when(adSpaceRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // WHEN / THEN
+        assertThrows(AdSpaceNotFoundException.class, 
+                () -> adSpaceService.updateAdSpace(99L, "New Name", null, null, null, null));
+        verify(adSpaceRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an existing ad space with no dependencies
+        WHEN deleteAdSpace is called
+        THEN the repository deletes the entity
+    """)
+    void deleteAdSpace_noDependencies_deletesSuccessfully() {
+        // GIVEN
+        AdSpace adSpace = sampleAdSpace();
+        
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(adSpace));
+        doNothing().when(adSpaceRepository).delete(adSpace);
+
+        // WHEN
+        adSpaceService.deleteAdSpace(1L);
+
+        // THEN
+        verify(adSpaceRepository).findById(1L);
+        verify(adSpaceRepository).delete(adSpace);
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN a non-existent ad space id
+        WHEN deleteAdSpace is called
+        THEN AdSpaceNotFoundException is thrown
+    """)
+    void deleteAdSpace_notFound_throwsException() {
+        // GIVEN
+        when(adSpaceRepository.findById(99L)).thenReturn(Optional.empty());
+
+        // WHEN / THEN
+        assertThrows(AdSpaceNotFoundException.class, 
+                () -> adSpaceService.deleteAdSpace(99L));
+        verify(adSpaceRepository, never()).delete(any());
+    }
+
+    @Test
+    @DisplayName("""
+        GIVEN an ad space with booking dependencies
+        WHEN deleteAdSpace is called
+        THEN DataIntegrityViolationException is propagated from repository
+    """)
+    void deleteAdSpace_withDependencies_throwsDataIntegrityViolation() {
+        // GIVEN
+        AdSpace adSpace = sampleAdSpace();
+        
+        when(adSpaceRepository.findById(1L)).thenReturn(Optional.of(adSpace));
+        doThrow(new DataIntegrityViolationException("Foreign key constraint"))
+                .when(adSpaceRepository).delete(adSpace);
+
+        // WHEN / THEN
+        assertThrows(DataIntegrityViolationException.class, 
+                () -> adSpaceService.deleteAdSpace(1L));
     }
 }

@@ -3,10 +3,10 @@ package com.bookingsystem.controllers;
 import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceType;
 import com.bookingsystem.service.AdSpaceService;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Comparator;
 import java.util.List;
 
 @RestController
@@ -52,30 +52,31 @@ public class AdSpaceController {
             }
         }
 
-        List<AdSpace> adSpaces = adSpaceService.searchAdSpaces(city, type);
+        Sort sort = buildSort(sortBy, sortOrder);
 
-        if (sortBy != null && !sortBy.isBlank()) {
-            Comparator<AdSpace> comparator = getComparator(sortBy);
-            if ("desc".equalsIgnoreCase(sortOrder)) {
-                comparator = comparator.reversed();
-            }
-            adSpaces.sort(comparator);
-        }
-
-        return adSpaces;
+        return adSpaceService.searchAdSpaces(city, type, sort);
     }
 
-    private Comparator<AdSpace> getComparator(String sortBy) {
-        String normalized = sortBy.toLowerCase().replaceAll("_", "");
-        return switch (normalized) {
-            case "name" -> Comparator.comparing(AdSpace::getName, String.CASE_INSENSITIVE_ORDER);
-            case "city" -> Comparator.comparing(AdSpace::getCity, String.CASE_INSENSITIVE_ORDER);
-            case "priceperday", "price" -> Comparator.comparing(AdSpace::getPricePerDay);
-            case "type" -> Comparator.comparing(adSpace -> adSpace.getType().name());
+    private Sort buildSort(String sortBy, String sortOrder) {
+        if (sortBy == null || sortBy.isBlank()) {
+            return Sort.by("name").ascending(); // Default sort
+        }
+
+        String normalizedField = switch (sortBy.toLowerCase().replaceAll("_", "")) {
+            case "priceperday", "price" -> "pricePerDay";
+            case "name" -> "name";
+            case "city" -> "city";
+            case "type" -> "type";
             default -> throw new IllegalArgumentException(
                     "Invalid 'sortBy' parameter. Allowed values: name, city, pricePerDay, type"
             );
         };
+
+        Sort.Direction direction = "desc".equalsIgnoreCase(sortOrder)
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+
+        return Sort.by(direction, normalizedField);
     }
 
     /**

@@ -5,6 +5,7 @@ import com.bookingsystem.model.AdSpace;
 import com.bookingsystem.model.AdSpaceStatus;
 import com.bookingsystem.model.AdSpaceType;
 import com.bookingsystem.repository.AdSpaceRepository;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -48,35 +49,41 @@ public class AdSpaceService {
 
     @Transactional(readOnly = true)
     public List<AdSpace> getAllAvailableAdSpaces() {
-        return adSpaceRepository.findByStatus(AdSpaceStatus.AVAILABLE);
+        return adSpaceRepository.findByStatus(AdSpaceStatus.AVAILABLE, Sort.by("name").ascending());
     }
 
     @Transactional(readOnly = true)
-    public List<AdSpace> searchAdSpaces(String city, AdSpaceType type) {
+    public List<AdSpace> searchAdSpaces(String city, AdSpaceType type, Sort sort) {
+        if (sort == null) {
+            sort = Sort.by("name").ascending();
+        }
 
         if (city != null && type != null) {
             return adSpaceRepository.findByStatusAndTypeAndCityContainingIgnoreCase(
                     AdSpaceStatus.AVAILABLE,
                     type,
-                    city
+                    city,
+                    sort
             );
         }
 
         if (city != null) {
             return adSpaceRepository.findByStatusAndCityContainingIgnoreCase(
                     AdSpaceStatus.AVAILABLE,
-                    city
+                    city,
+                    sort
             );
         }
 
         if (type != null) {
             return adSpaceRepository.findByStatusAndType(
                     AdSpaceStatus.AVAILABLE,
-                    type
+                    type,
+                    sort
             );
         }
 
-        return adSpaceRepository.findByStatus(AdSpaceStatus.AVAILABLE);
+        return adSpaceRepository.findByStatus(AdSpaceStatus.AVAILABLE, sort);
     }
 
     public AdSpace markForMaintenance(Long id) {
