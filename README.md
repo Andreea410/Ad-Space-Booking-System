@@ -250,8 +250,11 @@ Open a terminal and run:
 # Windows (if psql is in PATH)
 psql -U postgres
 
-# Mac/Linux
+# Linux
 sudo -u postgres psql
+
+# Mac
+psql postegres
 ```
 
 You'll see a prompt like: `postgres=#`
@@ -287,7 +290,7 @@ spring.datasource.password=password
 
 **Option 2: Use environment variables (recommended for production)**
 
-You can also create a `.env` file in the backend folder or set environment variables:
+You can also create a `.env` file in the backend folder, or copy the .env.example or set environment variables:
 
 ```bash
 # Example environment variables
@@ -319,34 +322,21 @@ cd backend
 #### Step 3.2: Make the run script executable (Mac/Linux only)
 
 ```bash
-chmod +x run-backend.ps1
+chmod +x run_backend.sh
 ```
 
 #### Step 3.3: Run the backend
 
-**Windows (PowerShell)**:
+**Windows**:
 ```powershell
-.\run-backend.ps1
-```
-
-**Windows (Command Prompt)**:
-```cmd
-powershell -ExecutionPolicy Bypass -File .\run-backend.ps1
+.\run_backend.ps1
 ```
 
 **Mac/Linux**:
 ```bash
-./gradlew bootRun
+./run_backend.sh
 ```
 
-**Alternative (if the script doesn't work)**:
-```bash
-# Windows
-gradlew.bat bootRun
-
-# Mac/Linux
-./gradlew bootRun
-```
 
 #### Step 3.4: Wait for the backend to start
 
