@@ -81,12 +81,21 @@ Before you begin, make sure you have the following installed on your computer:
 ### Required Software
 
 1. **Java 17 or higher**
+
    - Download from: https://adoptium.net/temurin/releases/
-   - Verify installation: Open terminal/command prompt and type:
+
+   - Validate your local runtime footprint by executing:
      ```bash
      java -version
      ```
-   - You should see something like: `openjdk version "17.0.x"`
+
+   - You should see an output similar to:
+     ```
+     openjdk version "17.0.x"
+     ```
+
+   If you provision a JDK version **other than Java 17** (e.g., Java 21 or Java 25), make sure to update the `build.gradle` configuration to maintain alignment between your local toolchain and the project’s build pipeline.
+
 
 2. **Node.js 16+ and npm**
    - Download from: https://nodejs.org/ (choose LTS version)
