@@ -90,8 +90,6 @@ export function BookingRequestForm({
         endDate: endDate?.toDate(),
       });
     } catch (error) {
-      // Validation errors are already handled by useFormValidation
-      // This catch prevents them from bubbling up to React's error boundary
     }
   };
 

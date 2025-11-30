@@ -26,7 +26,6 @@ export function useFormValidation<T>({ schema, onSubmit }: UseFormValidationOpti
       await onSubmit(validatedData);
     } catch (error) {
       if (error instanceof ZodError) {
-        // Handle validation errors - display them inline
         const fieldErrors: Record<string, string> = {};
         error.issues.forEach((issue) => {
           const field = issue.path[0];
@@ -35,13 +34,10 @@ export function useFormValidation<T>({ schema, onSubmit }: UseFormValidationOpti
           }
         });
         setErrors(fieldErrors);
-        // Don't re-throw validation errors - they're handled inline
       } else {
-        // Handle API/submission errors - display them as alerts
         setSubmitError(
           error instanceof Error ? error.message : 'An unexpected error occurred'
         );
-        // Re-throw API errors so parent can handle them if needed
         throw error;
       }
     } finally {

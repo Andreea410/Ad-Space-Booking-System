@@ -29,8 +29,8 @@ export interface CreateBookingRequestPayload {
   adSpaceId: number;
   advertiserName: string;
   advertiserEmail: string;
-  startDate: string; // ISO date (yyyy-MM-dd)
-  endDate: string; // ISO date (yyyy-MM-dd)
+  startDate: string;
+  endDate: string;
 }
 
 
