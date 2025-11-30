@@ -1,4 +1,4 @@
-export type AdSpaceType = 'BILLBOARD' | 'DIGITAL' | 'TRANSIT' | 'OTHER' | string;
+export type AdSpaceType = 'BILLBOARD' | 'BUS_STOP' | 'MALL_DISPLAY' | 'TRANSIT_AD';
 
 export type AdSpaceStatus = 'AVAILABLE' | 'BOOKED' | 'MAINTENANCE' | string;
 

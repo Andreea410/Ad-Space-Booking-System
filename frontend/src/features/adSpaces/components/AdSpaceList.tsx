@@ -1,52 +1,69 @@
 import React from 'react';
 import {
-  Alert,
-  Box,
-  CircularProgress,
-  GridLegacy as Grid,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@mui/material';
 import type { AdSpace } from '../../../api/types';
+import { AsyncContent } from '../../../shared/components/AsyncContent';
 import { AdSpaceCard } from './AdSpaceCard';
+import { AdSpaceActions } from './AdSpaceActions';
 
 interface AdSpaceListProps {
   adSpaces: AdSpace[];
   loading: boolean;
   error: string | null;
+  onBookNow: (space: AdSpace) => void;
+  onEdit: (space: AdSpace) => void;
+  onDelete: (space: AdSpace) => void;
 }
 
-export function AdSpaceList({ adSpaces, loading, error }: AdSpaceListProps) {
-  if (loading) {
-    return (
-      <Box display="flex" justifyContent="center" my={4}>
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box mb={3}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
-
-  if (adSpaces.length === 0) {
-    return (
-      <Box mt={4}>
-        <Alert severity="info">No ad spaces found. Try adjusting your filters.</Alert>
-      </Box>
-    );
-  }
-
+export function AdSpaceList({
+  adSpaces,
+  loading,
+  error,
+  onBookNow,
+  onEdit,
+  onDelete,
+}: AdSpaceListProps) {
   return (
-    <Grid container spacing={3}>
-      {adSpaces.map((space) => (
-        <Grid item xs={12} sm={6} md={4} key={space.id}>
-          <AdSpaceCard space={space} />
-        </Grid>
-      ))}
-    </Grid>
+    <AsyncContent
+      loading={loading}
+      error={error}
+      isEmpty={adSpaces.length === 0}
+      emptyMessage="No ad spaces found. Try adjusting your filters."
+    >
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Ad Space</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {adSpaces.map((space) => (
+              <TableRow key={space.id}>
+                <TableCell>
+                  <AdSpaceCard space={space} />
+                </TableCell>
+                <TableCell align="right">
+                  <AdSpaceActions
+                    onBookNow={() => onBookNow(space)}
+                    onEdit={() => onEdit(space)}
+                    onDelete={() => onDelete(space)}
+                  />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </AsyncContent>
   );
 }
 

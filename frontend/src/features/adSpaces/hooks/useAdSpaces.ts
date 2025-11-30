@@ -1,41 +1,46 @@
-import { useCallback, useEffect, useState, ChangeEvent } from 'react';
-import { fetchAdSpaces } from '../../../api/adSpaces';
+import { useEffect } from 'react';
 import type { AdSpace } from '../../../api/types';
+import {
+  type AdSpaceTypeFilter,
+  type AdSpacesState,
+  useAdSpacesStore,
+} from '../store/adSpacesStore';
 
 export function useAdSpaces() {
-  const [adSpaces, setAdSpaces] = useState<AdSpace[]>([]);
-  const [cityFilter, setCityFilter] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadAdSpaces = useCallback(
-    async (opts?: { city?: string }) => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await fetchAdSpaces({
-          city: opts?.city ?? (cityFilter || undefined),
-        });
-        setAdSpaces(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load ad spaces');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [cityFilter],
-  );
+  const {
+    adSpaces,
+    cityFilter,
+    typeFilter,
+    loading,
+    error,
+    setCityFilter,
+    setTypeFilter,
+    loadAdSpaces,
+  } = useAdSpacesStore((state: AdSpacesState) => ({
+    adSpaces: state.adSpaces,
+    cityFilter: state.cityFilter,
+    typeFilter: state.typeFilter,
+    loading: state.loading,
+    error: state.error,
+    setCityFilter: state.setCityFilter,
+    setTypeFilter: state.setTypeFilter,
+    loadAdSpaces: state.loadAdSpaces,
+  }));
 
   useEffect(() => {
     void loadAdSpaces();
   }, [loadAdSpaces]);
 
-  const handleCityChange = (event: ChangeEvent<HTMLInputElement>) => {
-    setCityFilter(event.target.value);
+  useEffect(() => {
+    void loadAdSpaces();
+  }, [cityFilter, typeFilter, loadAdSpaces]);
+
+  const handleCityFilterChange = (value: string) => {
+    setCityFilter(value);
   };
 
-  const handleSearch = () => {
-    void loadAdSpaces({ city: cityFilter || undefined });
+  const handleTypeFilterChange = (value: AdSpaceTypeFilter) => {
+    setTypeFilter(value);
   };
 
   const handleRefresh = () => {
@@ -44,16 +49,30 @@ export function useAdSpaces() {
 
   const hasResults = adSpaces.length > 0;
 
+  const availableCities = Array.from(
+    new Set<string>(adSpaces.map((space: AdSpace) => space.city)),
+  ).sort();
+
+  const typeOptions: AdSpaceTypeFilter[] = [
+    'ALL',
+    'BILLBOARD',
+    'BUS_STOP',
+    'MALL_DISPLAY',
+    'TRANSIT_AD',
+  ];
+
   return {
     adSpaces,
     cityFilter,
+    typeFilter,
     loading,
     error,
     hasResults,
-    handleCityChange,
-    handleSearch,
+    availableCities,
+    typeOptions,
+    handleCityFilterChange,
+    handleTypeFilterChange,
     handleRefresh,
   };
 }
-
 
