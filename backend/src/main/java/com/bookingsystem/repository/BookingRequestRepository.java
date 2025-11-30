@@ -12,7 +12,8 @@ import java.util.List;
 @Repository
 public interface BookingRequestRepository extends JpaRepository<BookingRequest, Long> {
 
-    List<BookingRequest> findByAdSpaceIdAndStatus(Long adSpaceId, BookingStatus status);
+    @Query("SELECT b FROM BookingRequest b JOIN FETCH b.adSpace WHERE b.adSpace.id = :adSpaceId AND b.status = :status")
+    List<BookingRequest> findByAdSpaceIdAndStatus(@Param("adSpaceId") Long adSpaceId, @Param("status") BookingStatus status);
     
     @Query("SELECT b FROM BookingRequest b JOIN FETCH b.adSpace WHERE b.status = :status")
     List<BookingRequest> findByStatus(@Param("status") BookingStatus status);

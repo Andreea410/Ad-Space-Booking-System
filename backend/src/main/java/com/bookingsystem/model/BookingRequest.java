@@ -92,8 +92,6 @@ public class BookingRequest {
         this.endDate = endDate;
         this.totalCost = totalCost;
         this.status = BookingStatus.PENDING;
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
     }
 
     private void validateBookingDates(LocalDate startDate, LocalDate endDate) {
@@ -111,6 +109,12 @@ public class BookingRequest {
         if (daysBetween < 7) {
             throw new IllegalArgumentException("Minimum booking duration is 7 days");
         }
+    }
+
+    @PrePersist
+    public void onCreate() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
