@@ -1134,23 +1134,6 @@ If you encounter any issues:
 
 ---
 
-## 📄 License
-
-This project is created for educational purposes as part of a technical challenge.
-
----
-
-## 👨‍💻 Author
-
-Created as part of the Generatik Junior Full-Stack Engineer Technical Challenge.
-
-**Time Spent**: ~4 hours
-- Backend: 2 hours
-- Frontend: 1.5 hours
-- Documentation: 0.5 hours
-
----
-
 ## 🎉 Thank You!
 
 Thank you for reviewing this project! I hope this README makes it easy to set up and run the application. If you have any questions or feedback, I'd love to hear them during the interview!
