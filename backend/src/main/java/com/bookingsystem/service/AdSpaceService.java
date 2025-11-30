@@ -55,7 +55,7 @@ public class AdSpaceService {
     public List<AdSpace> searchAdSpaces(String city, AdSpaceType type) {
 
         if (city != null && type != null) {
-            return adSpaceRepository.findByStatusAndTypeAndCity(
+            return adSpaceRepository.findByStatusAndTypeAndCityContainingIgnoreCase(
                     AdSpaceStatus.AVAILABLE,
                     type,
                     city
@@ -63,7 +63,7 @@ public class AdSpaceService {
         }
 
         if (city != null) {
-            return adSpaceRepository.findByStatusAndCity(
+            return adSpaceRepository.findByStatusAndCityContainingIgnoreCase(
                     AdSpaceStatus.AVAILABLE,
                     city
             );

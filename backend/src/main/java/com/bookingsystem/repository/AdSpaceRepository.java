@@ -19,12 +19,20 @@ public interface AdSpaceRepository extends JpaRepository<AdSpace, Long> {
 
     List<AdSpace> findByStatusAndCity(AdSpaceStatus status, String city);
 
+    List<AdSpace> findByStatusAndCityContainingIgnoreCase(AdSpaceStatus status, String cityFragment);
+
     List<AdSpace> findByStatusAndType(AdSpaceStatus status, AdSpaceType type);
 
     List<AdSpace> findByStatusAndTypeAndCity(
             AdSpaceStatus status,
             AdSpaceType type,
             String city
+    );
+
+    List<AdSpace> findByStatusAndTypeAndCityContainingIgnoreCase(
+            AdSpaceStatus status,
+            AdSpaceType type,
+            String cityFragment
     );
 
     default List<AdSpace> findAllAvailable() {
