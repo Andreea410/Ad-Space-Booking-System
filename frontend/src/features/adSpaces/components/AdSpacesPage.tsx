@@ -8,6 +8,8 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
 import { useAdSpacesStore } from '../store/adSpacesStore';
 import type { AdSpace } from '../../../api/types';
 import { EditAdSpaceDialog } from './EditAdSpaceDialog';
+import { BookingRequestForm } from '../../bookings/components/BookingRequestForm';
+import { createBooking } from '../../../api/adSpaces';
 
 export function AdSpacesPage() {
   const {
@@ -26,25 +28,41 @@ export function AdSpacesPage() {
     handleSort,
   } = useAdSpaces();
 
-  const { deleteAdSpace, markAsBooked, updateAdSpace } = useAdSpacesStore((state) => ({
+  const { deleteAdSpace, updateAdSpace } = useAdSpacesStore((state) => ({
     deleteAdSpace: state.deleteAdSpace,
-    markAsBooked: state.markAsBooked,
     updateAdSpace: state.updateAdSpace,
   }));
 
   const [editingSpace, setEditingSpace] = useState<AdSpace | null>(null);
   const [editingName, setEditingName] = useState('');
   const [deletingSpace, setDeletingSpace] = useState<AdSpace | null>(null);
+  const [bookingSpace, setBookingSpace] = useState<AdSpace | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('error');
 
   useEffect(() => {
     if (error) {
+      setSnackbarMessage(error);
+      setSnackbarSeverity('error');
       setSnackbarOpen(true);
     }
   }, [error]);
 
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
+  };
+
+  const showSuccessMessage = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  const showErrorMessage = (message: string) => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity('error');
+    setSnackbarOpen(true);
   };
 
   const handleOpenEdit = (space: AdSpace) => {
@@ -82,6 +100,32 @@ export function AdSpacesPage() {
     handleCloseDelete();
   };
 
+  const handleOpenBooking = (space: AdSpace) => {
+    setBookingSpace(space);
+  };
+
+  const handleCloseBooking = () => {
+    setBookingSpace(null);
+  };
+
+  const handleSubmitBooking = async (data: {
+    adSpaceId: number;
+    advertiserName: string;
+    advertiserEmail: string;
+    startDate: string;
+    endDate: string;
+  }) => {
+    try {
+      await createBooking(data);
+      showSuccessMessage('Booking request submitted successfully!');
+      handleRefresh();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to submit booking request';
+      showErrorMessage(message);
+      throw err;
+    }
+  };
+
   return (
     <Box>
       <PageHeader
@@ -107,7 +151,7 @@ export function AdSpacesPage() {
         sortBy={sortBy}
         sortOrder={sortOrder}
         onSort={handleSort}
-        onBookNow={(space) => markAsBooked(space.id)}
+        onBookNow={handleOpenBooking}
         onEdit={handleOpenEdit}
         onDelete={handleOpenDelete}
       />
@@ -130,14 +174,21 @@ export function AdSpacesPage() {
         onCancel={handleCloseDelete}
       />
 
+      <BookingRequestForm
+        open={Boolean(bookingSpace)}
+        adSpace={bookingSpace}
+        onClose={handleCloseBooking}
+        onSubmit={handleSubmitBooking}
+      />
+
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
-          {error}
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} sx={{ width: '100%' }}>
+          {snackbarMessage}
         </Alert>
       </Snackbar>
     </Box>
