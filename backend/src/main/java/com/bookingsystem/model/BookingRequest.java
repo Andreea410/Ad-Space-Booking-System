@@ -1,5 +1,7 @@
 package com.bookingsystem.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -23,9 +25,20 @@ public class BookingRequest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
     @JoinColumn(name = "ad_space_id", nullable = false)
     private AdSpace adSpace;
+    
+    @JsonProperty("adSpaceId")
+    public Long getAdSpaceId() {
+        return adSpace != null ? adSpace.getId() : null;
+    }
+    
+    @JsonProperty("adSpaceName")
+    public String getAdSpaceName() {
+        return adSpace != null ? adSpace.getName() : null;
+    }
 
     @Setter
     @NotBlank(message = "Advertiser name is required")

@@ -17,6 +17,7 @@ export type BookingStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | string;
 export interface BookingRequest {
   id: number;
   adSpaceId: number;
+  adSpaceName: string;
   advertiserName: string;
   advertiserEmail: string;
   startDate: string;

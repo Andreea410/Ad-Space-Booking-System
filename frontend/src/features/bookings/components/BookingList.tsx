@@ -59,7 +59,10 @@ export function BookingList({
                 <TableCell>{booking.id}</TableCell>
                 <TableCell>
                   <Typography variant="body2" fontWeight="medium">
-                    Ad Space #{booking.adSpaceId}
+                    {booking.adSpaceName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    ID: {booking.adSpaceId}
                   </Typography>
                 </TableCell>
                 <TableCell>{booking.advertiserName}</TableCell>
