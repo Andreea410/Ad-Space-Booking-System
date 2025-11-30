@@ -36,6 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+### Node modules (if any JS dependencies) ###
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
 ### Environment Variables & Local Config ###
 .env
 .env.local
