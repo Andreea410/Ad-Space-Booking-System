@@ -145,7 +145,7 @@ git clone <repository-url>
 cd Ad-Space-Booking-System
 ```
 
-**Note**: Replace `<repository-url>` with the actual repository URL (e.g., `https://github.com/username/Ad-Space-Booking-System.git`)
+**Note**: Replace `<repository-url>` with the actual repository URL (e.g., `https://github.com/Andreea410/Ad-Space-Booking-System.git`)
 
 #### Step 1.4: Verify the files are there
 
