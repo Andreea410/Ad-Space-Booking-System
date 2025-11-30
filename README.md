@@ -383,15 +383,6 @@ Press `Ctrl + C` in the terminal where the backend is running.
 
 #### Step 4.2: Navigate to the frontend folder
 
-```bash
-# If you're in the backend folder
-cd ..
-cd frontend
-
-# Or from the project root
-cd frontend
-```
-
 #### Step 4.3: Install dependencies
 
 This will download all the required packages (might take 2-5 minutes):
@@ -443,8 +434,8 @@ Press `Ctrl + C` in the terminal where the frontend is running.
 2. **Start the backend** (in one terminal):
    ```bash
    cd backend
-   .\run-backend.ps1        # Windows
-   ./gradlew bootRun        # Mac/Linux
+   .\run_backend.ps1        # Windows
+   ./run_backend.ps1        # Mac/Linux
    ```
 
 3. **Start the frontend** (in another terminal):
