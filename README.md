@@ -262,8 +262,8 @@ psql -U postgres
 # Linux
 sudo -u postgres psql
 
-# Mac
-psql postegres
+# Mac (if psql is in path)
+psql postgres
 ```
 
 You'll see a prompt like: `postgres=#`
